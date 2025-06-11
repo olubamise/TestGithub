@@ -5,16 +5,6 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-- script: |
-    python3 -m pip install --upgrade pip
-    pip install "setuptools<81"
-  displayName: 'Downgrade setuptools to avoid pkg_resources warning'
-
-- script: |
-    az extension remove --name azure-devops
-    az extension add --name azure-devops
-  displayName: 'Update Azure DevOps CLI extension'
-
 - task: AzureCLI@2
   displayName: 'Azure CLI'
 
@@ -23,9 +13,8 @@ steps:
     scriptType: pscore
     scriptLocation: inlineScript
     inlineScript: |
-      az devops login --org https://dev.azure.com/jaiyeoribe001
-      az pipelines variable-group list --organization https://dev.azure.com/jaiyeoribe001 -project "test" --verbose
+      az devops login --org https://dev.azure.com/jaiyeoribe001 2>&1
+      az pipelines variable-group list --organization https://dev.azure.com/jaiyeoribe001 -project "test" --verbose 2>&1
 
   env:
     AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-    PYTHONWARNINGS: "ignore::UserWarning"
