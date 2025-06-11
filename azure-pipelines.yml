@@ -10,29 +10,16 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-
 - task: AzureCLI@2
-
   displayName: 'Azure CLI '
 
   inputs:
-
     azureSubscription: 'ME-MngEnvMCAP074743-jaiyeoribe-1'
-
     scriptType: pscore
-
     scriptLocation: inlineScript
-
     inlineScript: |
-
-     az devops login --org https://dev.azure.com/jaiyeoribe001
-
-    
-
-     az pipelines variable-group list --organization https://dev.azure.com/jaiyeoribe001 -project "test" --verbose
-
-    
+      az devops login --org https://dev.azure.com/jaiyeoribe001
+      az pipelines variable-group list --organization https://dev.azure.com/jaiyeoribe001 -project "test" --verbose
 
   env:
-
     AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
