@@ -14,7 +14,7 @@ steps:
   displayName: 'Azure CLI '
 
   inputs:
-    azureSubscription: 'ME-MngEnvMCAP074743-jaiyeoribe-1'
+    azureSubscription: 'test'
     scriptType: pscore
     scriptLocation: inlineScript
     inlineScript: |
