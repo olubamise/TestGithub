@@ -11,7 +11,7 @@ pool:
 
 steps:
 - task: AzureCLI@2
-  displayName: 'Azure CLI '
+  displayName: 'Azure CLI'
 
   inputs:
     azureSubscription: 'test'
@@ -23,3 +23,5 @@ steps:
 
   env:
     AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+    PYTHONWARNINGS: "ignore::UserWarning"
+
