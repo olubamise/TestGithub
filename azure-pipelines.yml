@@ -7,7 +7,7 @@ pool:
 steps:
 - script: |
     python3 -m pip install --upgrade pip
-    pip install "setuptools==80.8.0"
+    pip install "setuptools==80.8.0" --force-reinstall --ignore-installed
   displayName: 'Downgrade setuptools to avoid pkg_resources warning'
 
 - script: |
