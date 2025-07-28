@@ -1,31 +1,43 @@
 trigger:
 - master
 
+schedules:
+- cron: '*/5 * * * *'
+  displayName: "Every 5 minutes"
+  branches:
+    include:
+    - networkconnection
+  always: true
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
+variables:
+- name: urls
+  value: |
+    dl.k8s.io
+    download.docker.com
+    releases.hashicorp.com
+    nodejs.org
+stages:
+- stage: __default
+  jobs:
+  - job: NetworkDiagnostics
+    displayName: 'Network Connectivity Diagnostics'
+    steps:
+    - task: CmdLine@2
+      displayName: 'Install Dependencies'
+      inputs:
+        script: |
+          echo "Installing required tools..."
+          sudo apt-get update
+          sudo apt-get install -y traceroute netcat-openbsd curl dnsutils
+    - task: CmdLine@2
+      displayName: 'Run Connectivity Tests'
+      env:
+        URLS: |-
+          dl.k8s.io
+          download.docker.com
+          releases.hashicorp.com
+          nodejs.org
+      inputs:
+        script: "echo \"========== \U0001F50D STARTING CONNECTIVITY CHECKS ==========\"\n\nFAILURES=0\nurls=$(echo \"$URLS\" | tr \" \" \"\\n\")\n\nfor url in $urls; do\n  echo \"\"\n  echo \"➡️  Checking: $url\"\n  echo \"-------------------------------------------\"\n\n  echo \"\U0001F539 DNS Lookup:\"\n  if ! nslookup $url; then\n    echo \"❌ DNS resolution failed for $url\"\n    FAILURES=$((FAILURES+1))\n  fi\n\n  echo \"\"\n  echo \"\U0001F539 HTTPS Connectivity:\"\n  if ! curl -I --max-time 10 https://$url; then\n    echo \"❌ HTTPS request failed for $url\"\n    FAILURES=$((FAILURES+1))\n  fi\n\n  echo \"\"\n  echo \"\U0001F539 TCP Port 443 Test:\"\n  if ! nc -zv $url 443; then\n    echo \"❌ TCP port 443 unreachable for $url\"\n    FAILURES=$((FAILURES+1))\n  fi\n\n  echo \"\"\n  echo \"\U0001F539 Traceroute:\"\n  if ! traceroute -m 10 $url; then\n    echo \"❌ Traceroute failed for $url\"\n    FAILURES=$((FAILURES+1))\n  fi\n\n  echo \"✅ Finished testing $url\"\n  echo \"===========================================\"\ndone\n\necho \"\"\necho \"========== ✅ CHECKS COMPLETED ==========\"\n\nif [ \"$FAILURES\" -gt 0 ]; then\n  echo \"❌ Detected $FAILURES failure(s). Failing the pipeline.\"\n  exit 1\nelse\n  echo \"✅ No failures detected. Pipeline succeeded.\"\nfi\n"
 
-steps:
-- script: |
-    python3 -m pip install --upgrade pip
-    pip install "setuptools==80.8.0" --force-reinstall --ignore-installed
-  displayName: 'Downgrade setuptools to avoid pkg_resources warning'
-
-- script: |
-    az extension remove --name azure-devops
-    az extension add --name azure-devops
-  displayName: 'Update Azure DevOps CLI extension'
-
-- task: AzureCLI@2
-  displayName: 'Azure CLI'
-
-  inputs:
-    azureSubscription: 'test'
-    scriptType: pscore
-    scriptLocation: inlineScript
-    inlineScript: |
-      az devops login --org https://dev.azure.com/jaiyeoribe001
-      az pipelines variable-group list --organization https://dev.azure.com/jaiyeoribe001 -project "test" --verbose
-
-  env:
-    AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-    PYTHONWARNINGS: "ignore::UserWarning"
