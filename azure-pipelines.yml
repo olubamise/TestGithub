@@ -1,43 +1,26 @@
+# Azure DevOps Pipeline YAML to Install Pre-release Az.DesktopVirtualization Module
+
 trigger:
-- master
+- main
 
-schedules:
-- cron: '*/5 * * * *'
-  displayName: "Every 5 minutes"
-  branches:
-    include:
-    - networkconnection
-  always: true
 pool:
-  vmImage: 'ubuntu-latest'
-variables:
-- name: urls
-  value: |
-    dl.k8s.io
-    download.docker.com
-    releases.hashicorp.com
-    nodejs.org
-stages:
-- stage: __default
-  jobs:
-  - job: NetworkDiagnostics
-    displayName: 'Network Connectivity Diagnostics'
-    steps:
-    - task: CmdLine@2
-      displayName: 'Install Dependencies'
-      inputs:
-        script: |
-          echo "Installing required tools..."
-          sudo apt-get update
-          sudo apt-get install -y traceroute netcat-openbsd curl dnsutils
-    - task: CmdLine@2
-      displayName: 'Run Connectivity Tests'
-      env:
-        URLS: |-
-          dl.k8s.io
-          download.docker.com
-          releases.hashicorp.com
-          nodejs.org
-      inputs:
-        script: "echo \"========== \U0001F50D STARTING CONNECTIVITY CHECKS ==========\"\n\nFAILURES=0\nurls=$(echo \"$URLS\" | tr \" \" \"\\n\")\n\nfor url in $urls; do\n  echo \"\"\n  echo \"➡️  Checking: $url\"\n  echo \"-------------------------------------------\"\n\n  echo \"\U0001F539 DNS Lookup:\"\n  if ! nslookup $url; then\n    echo \"❌ DNS resolution failed for $url\"\n    FAILURES=$((FAILURES+1))\n  fi\n\n  echo \"\"\n  echo \"\U0001F539 HTTPS Connectivity:\"\n  if ! curl -I --max-time 10 https://$url; then\n    echo \"❌ HTTPS request failed for $url\"\n    FAILURES=$((FAILURES+1))\n  fi\n\n  echo \"\"\n  echo \"\U0001F539 TCP Port 443 Test:\"\n  if ! nc -zv $url 443; then\n    echo \"❌ TCP port 443 unreachable for $url\"\n    FAILURES=$((FAILURES+1))\n  fi\n\n  echo \"\"\n  echo \"\U0001F539 Traceroute:\"\n  if ! traceroute -m 10 $url; then\n    echo \"❌ Traceroute failed for $url\"\n    FAILURES=$((FAILURES+1))\n  fi\n\n  echo \"✅ Finished testing $url\"\n  echo \"===========================================\"\ndone\n\necho \"\"\necho \"========== ✅ CHECKS COMPLETED ==========\"\n\nif [ \"$FAILURES\" -gt 0 ]; then\n  echo \"❌ Detected $FAILURES failure(s). Failing the pipeline.\"\n  exit 1\nelse\n  echo \"✅ No failures detected. Pipeline succeeded.\"\nfi\n"
+  vmImage: 'windows-latest'
 
+steps:
+- task: PowerShell@2
+  displayName: 'Install Az.DesktopVirtualization Pre-release'
+  inputs:
+    targetType: 'inline'
+    script: |
+      Install-PackageProvider -Name NuGet -Force
+      Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
+      Install-Module -Name Az.DesktopVirtualization -AllowPrerelease -Force -AllowClobber -Scope CurrentUser
+      Import-Module Az.DesktopVirtualization
+      Write-Host "Az.DesktopVirtualization module installed successfully."
+
+- task: PowerShell@2
+  displayName: 'Verify Module Installation'
+  inputs:
+    targetType: 'inline'
+    script: |
+      Get-Module -ListAvailable Az.DesktopVirtualization"
