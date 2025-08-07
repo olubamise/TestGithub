@@ -1,26 +1,13 @@
-# Azure DevOps Pipeline YAML to Install Pre-release Az.DesktopVirtualization Module
-
 trigger:
 - main
 
 pool:
-  vmImage: 'windows-latest'
+  name: 'test-vm'
 
 steps:
-- task: PowerShell@2
-  displayName: 'Install Az.DesktopVirtualization Pre-release'
-  inputs:
-    targetType: 'inline'
-    script: |
-      Install-PackageProvider -Name NuGet -Force
-      Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
-      Install-Module -Name Az.DesktopVirtualization -AllowPrerelease -Force -AllowClobber -Scope CurrentUser
-      Import-Module Az.DesktopVirtualization
-      Write-Host "Az.DesktopVirtualization module installed successfully."
-
-- task: PowerShell@2
-  displayName: 'Verify Module Installation'
-  inputs:
-    targetType: 'inline'
-    script: |
-      Get-Module -ListAvailable Az.DesktopVirtualization"
+- script: |
+    git init repo
+    cd repo
+    git remote add origin https://your-repo-url.com/your-project.git
+    git -c http.extraheader="Authorization: Bearer YOUR_HARDCODED_TOKEN_HERE" fetch --verbose --force --tags --progress --no-recurse-submodules origin --depth=1
+  displayName: 'Git Fetch with Hardcoded Auth Header'
