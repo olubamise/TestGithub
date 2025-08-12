@@ -15,15 +15,3 @@ steps:
     echo "Downloading Java from $JAVA_DOWNLOAD_URL"
     curl -L -o $JAVA_ARCHIVE_NAME $JAVA_DOWNLOAD_URL
   displayName: 'Download Java'
-
-- script: |
-    echo "Extracting Java archive"
-    tar -xzf $JAVA_ARCHIVE_NAME
-  displayName: 'Extract Java'
-
-- script: |
-    echo "Setting JAVA_HOME and updating PATH"
-    export JAVA_HOME=$(pwd)/$JAVA_EXTRACTED_DIR
-    export PATH=$JAVA_HOME/bin:$PATH
-    java -version
-  displayName: 'Configure Java and Verify'
