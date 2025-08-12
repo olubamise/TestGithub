@@ -15,3 +15,9 @@ steps:
     echo "Downloading Java from $JAVA_DOWNLOAD_URL"
     curl -L -o $JAVA_ARCHIVE_NAME $JAVA_DOWNLOAD_URL
   displayName: 'Download Java'
+
+- script: |
+    echo "Browsing google.com"
+    curl -I https://www.google.com
+  displayName: 'Browse Google.com'
+
