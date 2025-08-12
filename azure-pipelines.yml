@@ -1,13 +1,29 @@
 trigger:
 - main
 
+# Use your self-hosted agent pool
 pool:
-  name: 'test-vm'
+  name: 'jaiyeoribe-mdp-pool'  # Replace with your actual agent pool name
+
+variables:
+  JAVA_DOWNLOAD_URL: 'https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.tar.gz'
+  JAVA_ARCHIVE_NAME: 'jdk-17_linux-x64_bin.tar.gz'
+  JAVA_EXTRACTED_DIR: 'jdk-17'
 
 steps:
 - script: |
-    git init repo
-    cd repo
-    git remote add origin https://your-repo-url.com/your-project.git
-    git -c http.extraheader="Authorization: Bearer YOUR_HARDCODED_TOKEN_HERE" fetch --verbose --force --tags --progress --no-recurse-submodules origin --depth=1
-  displayName: 'Git Fetch with Hardcoded Auth Header'
+    echo "Downloading Java from $JAVA_DOWNLOAD_URL"
+    curl -L -o $JAVA_ARCHIVE_NAME $JAVA_DOWNLOAD_URL
+  displayName: 'Download Java'
+
+- script: |
+    echo "Extracting Java archive"
+    tar -xzf $JAVA_ARCHIVE_NAME
+  displayName: 'Extract Java'
+
+- script: |
+    echo "Setting JAVA_HOME and updating PATH"
+    export JAVA_HOME=$(pwd)/$JAVA_EXTRACTED_DIR
+    export PATH=$JAVA_HOME/bin:$PATH
+    java -version
+  displayName: 'Configure Java and Verify'
