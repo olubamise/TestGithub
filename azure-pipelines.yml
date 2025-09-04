@@ -1,23 +1,24 @@
 trigger:
-- main
+  branches:
+    include:
+    - main
+stages:
+- stage: __default
+  jobs:
+  - job: Job
+    pool:
+      name: jaiyeoribe-mdp-pool
+      vmImage: windows-2022
+    steps:
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |-
+          # Write your PowerShell commands here.
 
-# Use your self-hosted agent pool
-pool:
-  name: 'jaiyeoribe-mdp-pool'  # Replace with your actual agent pool name
-
-variables:
-  JAVA_DOWNLOAD_URL: 'https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.tar.gz'
-  JAVA_ARCHIVE_NAME: 'jdk-17_linux-x64_bin.tar.gz'
-  JAVA_EXTRACTED_DIR: 'jdk-17'
-
-steps:
-- script: |
-    echo "Downloading Java from $JAVA_DOWNLOAD_URL"
-    curl -L -o $JAVA_ARCHIVE_NAME $JAVA_DOWNLOAD_URL
-  displayName: 'Download Java'
-
-- script: |
-    echo "Browsing google.com"
-    curl -I https://www.google.com
-  displayName: 'Browse Google.com'
+          Test-NetConnection 10.3.122.48 -p 1433
+          Test-NetConnection 10.3.127.5 -p 80
+          Test-NetConnection 172.16.102.48 -p 1433
+          Test-NetConnection qa-cc-processor-director-ddevcse3aua5fcbq.eastus2-01.azurewebsites.net -p 443
+          Test-NetConnection 10.3.124.70 -p 443
 
