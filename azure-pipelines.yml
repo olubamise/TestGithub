@@ -7,7 +7,7 @@ stages:
   jobs:
   - job: Job
     pool:
-      name: jaiyeoribe-mdp-pool
+      name: test-vmss-agent
       vmImage: windows-2022
     steps:
     - task: PowerShell@2
