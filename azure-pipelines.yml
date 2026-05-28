@@ -80,4 +80,3 @@ stages:
           echo "TIME_UTC=$UTC_TIME | IP=$AGENT_IP | BUILD_ID=$(Build.BuildId)"
 
           echo "==========================================="
-          displayName: "Log IP, Timestamp, Identity (Safe Version)"
