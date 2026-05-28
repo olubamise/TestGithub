@@ -22,3 +22,42 @@ stages:
           Test-NetConnection qa-cc-processor-director-ddevcse3aua5fcbq.eastus2-01.azurewebsites.net -p 443
           Test-NetConnection 10.3.124.70 -p 443
 
+    - task: Bash@3
+      inputs:
+        targetType: inline
+        script: |
+          echo "==========================================="
+          echo "   Agent Network & Timestamp Diagnostics"
+          echo "==========================================="
+
+          echo ""
+          echo ">>> UTC Timestamp:"
+          date -u
+
+          echo ""
+          echo ">>> Local Timestamp:"
+          date
+
+          echo ""
+          echo ">>> Agent Public IP:"
+          AGENT_IP=$(curl -s https://api.ipify.org)
+          echo $AGENT_IP
+
+          echo ""
+          echo ">>> Agent Host Info:"
+          hostname
+
+          echo ""
+          echo ">>> Azure DevOps Build Context:"
+          echo "Build ID: $(Build.BuildId)"
+          echo "Build Number: $(Build.BuildNumber)"
+          echo "Pipeline Name: $(Build.DefinitionName)"
+          echo "Stage Name: $(System.StageDisplayName)"
+          echo "Job Name: $(Agent.JobName)"
+
+          echo ""
+          echo ">>> Composite Correlation Marker (IMPORTANT):"
+          echo "TIMESTAMP=$(date -u) | IP=$AGENT_IP | BUILD_ID=$(Build.BuildId)"
+
+          echo "==========================================="
+      displayName: "Log Agent IP and Timestamp (Diagnostics)"
