@@ -7,7 +7,7 @@ stages:
   jobs:
   - job: Job
     pool:
-      name: test-vmss-agent
+      name: test-windows-vm
       vmImage: windows-2022
     steps:
     - task: PowerShell@2
