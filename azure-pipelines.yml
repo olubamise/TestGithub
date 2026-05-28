@@ -22,16 +22,18 @@ stages:
         targetType: inline
         script: |
           echo "==========================================="
-          echo "   Agent Network & Timestamp Diagnostics"
+          echo "   Agent Network, Identity & Timestamp Diagnostics"
           echo "==========================================="
 
           echo ""
           echo ">>> UTC Timestamp:"
-          date -u
+          UTC_TIME=$(date -u)
+          echo $UTC_TIME
 
           echo ""
           echo ">>> Local Timestamp:"
-          date
+          LOCAL_TIME=$(date)
+          echo $LOCAL_TIME
 
           echo ""
           echo ">>> Agent Public IP:"
@@ -39,20 +41,46 @@ stages:
           echo $AGENT_IP
 
           echo ""
-          echo ">>> Agent Host Info:"
-          hostname
+          echo ">>> Agent Machine Info:"
+          echo "Hostname: $(hostname)"
 
           echo ""
-          echo ">>> Azure DevOps Build Context:"
+          echo ">>> Azure DevOps Pipeline Identity Context:"
           echo "Build ID: $(Build.BuildId)"
           echo "Build Number: $(Build.BuildNumber)"
           echo "Pipeline Name: $(Build.DefinitionName)"
-          echo "Stage Name: $(System.StageDisplayName)"
-          echo "Job Name: $(Agent.JobName)"
+          echo "Project: $(System.TeamProject)"
+          echo "Stage: $(System.StageDisplayName)"
+          echo "Job: $(Agent.JobName)"
 
           echo ""
-          echo ">>> Composite Correlation Marker (IMPORTANT):"
-          echo "TIMESTAMP=$(date -u) | IP=$AGENT_IP | BUILD_ID=$(Build.BuildId)"
+          echo ">>> Service Connection / Identity Clues:"
+          echo "Service Principal Client ID: $(ARM_CLIENT_ID)"
+          echo "Tenant ID: $(ARM_TENANT_ID)"
+          echo "Subscription ID: $(ARM_SUBSCRIPTION_ID)"
 
+          echo ""
+          echo ">>> OAuth Token (Sanitized Check):"
+          if [ -n "$SYSTEM_ACCESSTOKEN" ]; then
+              echo "System.AccessToken is PRESENT (pipeline authenticated via OAuth)"
+          else
+              echo "System.AccessToken is NOT present"
+          fi
+
+          echo ""
+          echo ">>> Metadata Endpoint Check (Managed Identity Detection):"
+          curl -s -H Metadata:true \
+            "http://169.254.169.254/metadata/identity/info?api-version=2021-02-01" \
+            && echo "" || echo "No Managed Identity available on agent (expected for hosted agents)"
+
+          echo ""
+          echo ">>> Composite Correlation Marker (COPY THIS):"
+          echo "TIME_UTC=$UTC_TIME | IP=$AGENT_IP | BUILD_ID=$(Build.BuildId) | CLIENT_ID=$(ARM_CLIENT_ID)"
+
+          echo ""
           echo "==========================================="
-      displayName: "Log Agent IP and Timestamp (Diagnostics)"
+          displayName: "Log IP, Timestamp, and Identity (Deep Diagnostics)"
+          env:
+            ARM_CLIENT_ID: $(servicePrincipalId)
+            ARM_TENANT_ID: $(tenantId)
+            ARM_SUBSCRIPTION_ID: $(subscriptionId)
