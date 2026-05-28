@@ -7,8 +7,7 @@ stages:
   jobs:
   - job: Job
     pool:
-      name: test-windows-vm
-      vmImage: windows-2022
+      name: Azure pipelines
     steps:
     - task: PowerShell@2
       inputs:
