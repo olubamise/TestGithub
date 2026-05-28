@@ -20,9 +20,9 @@ stages:
     - task: Bash@3
       inputs:
         targetType: inline
-        script: |
+        bash: |
           echo "==========================================="
-          echo "   Agent Network, Identity & Timestamp Diagnostics"
+          echo " Agent Network, Identity & Timestamp Diagnostics"
           echo "==========================================="
 
           echo ""
@@ -41,46 +41,43 @@ stages:
           echo $AGENT_IP
 
           echo ""
-          echo ">>> Agent Machine Info:"
+          echo ">>> Agent Info:"
           echo "Hostname: $(hostname)"
 
           echo ""
-          echo ">>> Azure DevOps Pipeline Identity Context:"
+          echo ">>> Azure DevOps Context:"
           echo "Build ID: $(Build.BuildId)"
-          echo "Build Number: $(Build.BuildNumber)"
-          echo "Pipeline Name: $(Build.DefinitionName)"
-          echo "Project: $(System.TeamProject)"
-          echo "Stage: $(System.StageDisplayName)"
+          echo "Pipeline: $(Build.DefinitionName)"
           echo "Job: $(Agent.JobName)"
 
           echo ""
-          echo ">>> Service Connection / Identity Clues:"
-          echo "Service Principal Client ID: $(ARM_CLIENT_ID)"
-          echo "Tenant ID: $(ARM_TENANT_ID)"
-          echo "Subscription ID: $(ARM_SUBSCRIPTION_ID)"
-
-          echo ""
-          echo ">>> OAuth Token (Sanitized Check):"
+          echo ">>> OAuth Token Check:"
           if [ -n "$SYSTEM_ACCESSTOKEN" ]; then
-              echo "System.AccessToken is PRESENT (pipeline authenticated via OAuth)"
+            echo "System.AccessToken PRESENT"
           else
-              echo "System.AccessToken is NOT present"
+            echo "System.AccessToken NOT present"
           fi
 
           echo ""
-          echo ">>> Metadata Endpoint Check (Managed Identity Detection):"
-          curl -s -H Metadata:true \
-            "http://169.254.169.254/metadata/identity/info?api-version=2021-02-01" \
-            && echo "" || echo "No Managed Identity available on agent (expected for hosted agents)"
+          echo ">>> Managed Identity Check (Metadata Endpoint):"
+          MI_RESPONSE=$(curl -s -H Metadata:true \
+            "http://169.254.169.254/metadata/identity/info?api-version=2021-02-01")
+
+          echo $MI_RESPONSE
+
+          if [[ "$MI_RESPONSE" == *"identity"* ]]; then
+            echo "Managed Identity detected"
+          else
+            echo "No Managed Identity on agent (expected for hosted agent)"
+          fi
 
           echo ""
-          echo ">>> Composite Correlation Marker (COPY THIS):"
-          echo "TIME_UTC=$UTC_TIME | IP=$AGENT_IP | BUILD_ID=$(Build.BuildId) | CLIENT_ID=$(ARM_CLIENT_ID)"
+          echo ">>> OIDC / Service Principal (Expected Identity Type):"
+          echo "NOTE: If using Terraform OIDC (use_oidc=true), identity = Service Principal (NOT Managed Identity)"
 
           echo ""
+          echo ">>> Composite Marker:"
+          echo "TIME_UTC=$UTC_TIME | IP=$AGENT_IP | BUILD_ID=$(Build.BuildId)"
+
           echo "==========================================="
-          displayName: "Log IP, Timestamp, and Identity (Deep Diagnostics)"
-          env:
-            ARM_CLIENT_ID: $(servicePrincipalId)
-            ARM_TENANT_ID: $(tenantId)
-            ARM_SUBSCRIPTION_ID: $(subscriptionId)
+          displayName: "Log IP, Timestamp, Identity (Safe Version)"
