@@ -15,11 +15,7 @@ stages:
         script: |-
           # Write your PowerShell commands here.
 
-          Test-NetConnection 10.3.122.48 -p 1433
-          Test-NetConnection 10.3.127.5 -p 80
-          Test-NetConnection 172.16.102.48 -p 1433
-          Test-NetConnection qa-cc-processor-director-ddevcse3aua5fcbq.eastus2-01.azurewebsites.net -p 443
-          Test-NetConnection 10.3.124.70 -p 443
+          Test-Connection 10.3.122.48 -Count 2
 
     - task: Bash@3
       inputs:
