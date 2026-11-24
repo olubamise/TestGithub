@@ -7,7 +7,7 @@ stages:
   jobs:
   - job: Job
     pool:
-      name: vm-2512120040009010001
+      name: test-windows-vm
     steps:
     - task: PowerShell@2
       inputs:
