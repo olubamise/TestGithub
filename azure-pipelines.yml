@@ -7,7 +7,7 @@ stages:
   jobs:
   - job: Job
     pool:
-      name: Azure pipelines
+      name: vm-2512120040009010001
     steps:
     - task: PowerShell@2
       inputs:
